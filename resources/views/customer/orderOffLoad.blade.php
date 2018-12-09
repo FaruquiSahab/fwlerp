@@ -1124,9 +1124,9 @@
                             console.log('demand');
                             console.log($('#quantitydemand').val());
                             console.log('avail');
-                            console.log($('#quantity').val());
+                            console.log($('#quantityD').val());
                             var demand = $('#quantitydemand').val();
-                            var avail  = $('#quantity').val();
+                            var avail  = $('#quantityD').val();
                             if (+demand > +avail) 
                             {
                                 console.log('if')

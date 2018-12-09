@@ -4,7 +4,7 @@
                     {{-- Customer login see products --}}
 <div class="container" >
 	<div class="row">
-		<div class="col-md-12">
+		<div class="col-md-10">
 			<!-- BEGIN SAMPLE TABLE PORTLET-->
 			<div class="portlet light ">
 				<div class="portlet-title" >
@@ -25,6 +25,8 @@
 							<table class="table table-hover table-light" id="myTable">
 								<thead>
 									<tr>
+                                        <th>S.No</th>
+                                        <th>MCR No.</th>
                                         <th>Vendor Name</th>
                                         <th>Driver Name</th>
                                         <th>Contact No</th>
@@ -33,19 +35,24 @@
                                         <th>Origin</th>
                                         <th>Destination</th>
                                         <th>Via</th>
+                                        <th>Date</th>
                                     </tr>
                                 </thead>
-                                <tbody >
+                                <tbody>
                                    @foreach($mcrs as $key => $mcr)
                                    <tr>
+                                    
+                                       <td>{{ $mcr->mcr_id }}</td>
+                                       <td>{{ $mcr->mcr_no }}</td>
                                        <td>{{ $mcr->vendor->name ?? 'Null' }}</td>
                                        <td>{{ $mcr->mcr_driver_name }}</td>
                                        <td>{{ $mcr->mcr_driver_cell }}</td>
                                        <td>{{ $mcr->vehicle->vehicle_name ?? 'Null' }}</td>
                                        <td>{{ $mcr->vehicle->vehicle_number ?? 'Null' }}</td>
-                                       <td>{{ $mcr->mcr_from }}</td>
-                                       <td>{{ $mcr->mcr_to }}</td>
-                                       <td>{{ $mcr->mcr_via }}</td>
+                                       <td class="uppercase">{{ $mcr->mcr_from }}</td>
+                                       <td class="uppercase">{{ $mcr->mcr_to }}</td>
+                                       <td class="uppercase">{{ $mcr->mcr_via }}</td>
+                                       <td>{{ $mcr->date }}</td>
                                    </tr>
                             @endforeach
                         </tbody>
@@ -76,6 +83,31 @@
                             <form class="form-horizontal" method="POST" action="{{ route('mcr.store') }}">
 
                                 {{ csrf_field() }}
+
+
+                                <div class="form-group{{ $errors->has('date') ? ' has-error' : '' }}">
+                                    <label for="date" class="col-md-4 control-label">Date</label>
+                                    <div class="col-md-6">
+                                        <input type="date" class="form-control" name="date" required>
+                                        @if ($errors->has('date'))
+                                        <span class="help-block">
+                                            <strong>{{ $errors->first('date') }}</strong>
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="form-group{{ $errors->has('mcr_no') ? ' has-error' : '' }}">
+                                    <label for="mcr_no" class="col-md-4 control-label">MCR No.</label>
+                                    <div class="col-md-6">
+                                        <input type="mcr_no" class="form-control" name="mcr_no" required>
+                                        @if ($errors->has('mcr_no'))
+                                        <span class="help-block">
+                                            <strong>{{ $errors->first('mcr_no') }}</strong>
+                                        </span>
+                                        @endif
+                                    </div>
+                                </div>
                                 
                                 <div class="form-group{{$errors->has('mcr_vendor') ? ' has-error' : '' }}">
                                         <label for="mcr_vendor" class="col-md-4 control-label">Vendor</label>
@@ -205,5 +237,6 @@
                                 @section('script')
 
                                     <script type="text/javascript">
+                                        $('.iterate').slideUp();
                                     </script>
                                 @endsection

@@ -3,7 +3,7 @@
 @section('content')
 <div class="container" >
     <div class="row">
-        <div class="col-md-12">
+        <div class="col-md-10">
             <!-- BEGIN SAMPLE TABLE PORTLET-->
             <div class="portlet light pehlatable ">
                 <div class="portlet-title" >
@@ -59,7 +59,6 @@
                                         </span>
                                     </td>
                                     <td class="uppercase">{{ $order->w_location  }}</td>
-
                                     <td>{{ $order->p_packing }}</td>
                                     <td>{{ $order->o_quantity }}</td>
                                     <td class="uppercase">{{ $order->cn_location }}</td>
@@ -283,10 +282,12 @@
                                 },
                                 success: function(response) 
                                 {
+                                    console.log('Success');
                                     console.log(response);
                                 },
                                 error : function(error)
                                 {
+                                    console.log('Error');
                                 }
                             });
                 }

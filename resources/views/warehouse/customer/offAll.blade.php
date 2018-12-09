@@ -79,6 +79,7 @@
     <script type="text/javascript">
         $('table').dataTable({searching:false, paging:false, info:false});
         window.print();
+         
 
 
     </script>

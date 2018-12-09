@@ -61,12 +61,16 @@ Route::prefix('warehouse')->group(function()
 	Route::POST('assign/uncheck','WarehouseHeadController@assignuncheck')->name('head.uncheck');
 	// vehcie mcr show
 	Route::POST('vehiclemcr','WarehouseHeadController@showvehiclemcr')->name('vehiclemcr');
-	//submit assign vehicle
-	Route::POST('submitassignvehice','WarehouseHeadController@submitvehicle')->name('submitassignvehicle');
+	//submit assign vehicle OR line haul
+	Route::POST('submitassignvehicle','WarehouseHeadController@submitvehicle')->name('submitassignvehicle');
 	// show mcr index
 	Route::GET('mcr','WarehouseHeadController@showmcr')->name('mcrindex');
 	// store mcr
 	Route::POST('createmcr','WarehouseHeadController@storemcr')->name('mcr.store');
+	//create manifest show
+	Route::GET('manifest','WarehouseHeadController@manifest')->name('head.manifest');
+	// cretae manifest on the fly
+	Route::GET('manifest/{mcr_id}','WarehouseHeadController@manifest1')->name('manifest');
 
 
 	Route::POST('head/add_customer','WarehouseHeadController@customerStore')->name('admin_customer.store');
@@ -173,11 +177,17 @@ Route::prefix('customer')->group(function(){
 });
 //product by order
 Route::POST('/order/product','OrderOffLoadController@productByOrder');
+//order by quantity
 Route::POST('/order/quantity','OrderOffLoadController@quantityByOrder');
+// old
 Route::POST('/order/pkgs','OrderOffLoadController@pkgsByOrder');
+// stock report old
 Route::GET('/stock','OrderInLoadController@stock')->name('customer.stock');
+//  logs old
 Route::POST('/log','OrderInLoadController@log')->name('customer.log');
+// logs all old
 Route::GET('/logAll','OrderInLoadController@logAll')->name('customer.logAll');
+
 Route::POST('stock/inOne','OrderInLoadController@inOne')->name('cust.inOne');
 Route::GET('stock/inAll','OrderInLoadController@inAll')->name('cust.inAll');
 Route::POST('stock/offOne','OrderOffLoadController@offOne')->name('cust.offOne');

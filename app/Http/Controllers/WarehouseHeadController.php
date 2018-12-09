@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Cn;
 use App\Consignee;
 use App\Customer;
 use App\Mcr;
@@ -98,6 +99,7 @@ class WarehouseHeadController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    
     public function show($id)
     {
         $dec_id = decrypt($id);
@@ -542,7 +544,8 @@ class WarehouseHeadController extends Controller
 
         if ($order)
         {
-            return $this->assignVehicle();
+            return redirect()->back();
+            // return $this->show($request->id);
         }
 
     }
@@ -573,7 +576,7 @@ class WarehouseHeadController extends Controller
                             ->join('warehouses','order_off_load.w_id','=','warehouses.w_id')
                             ->selectRaw('order_off_load.id, order_off_load.dcn, order_off_load.remarks AS o_remarks, order_in_load.grn, customers.name AS c_name, customers.id AS c_id, warehouses.location AS w_location, warehouses.w_name, product.name AS p_name, product.packing AS p_packing, order_off_load.quantity AS o_quantity, consignee.name AS cn_name, consignee.address AS cn_address, consignee.pic AS cn_pic, consignee.location as cn_location, consignee.contact AS cn_contact, order_off_load.order_type AS o_order_type')
                             ->whereRaw('order_off_load.inload_id = order_in_load.id')
-                            ->whereRaw('order_off_load.picked != 0')
+                            ->whereRaw('order_off_load.picked = 1')
                             ->whereRaw('warehouses.location = consignee.location')
                             ->get();
         return view('warehouse.customer.assignvehicle',compact('ordersoff','unique'));
@@ -592,7 +595,7 @@ class WarehouseHeadController extends Controller
                             ->selectRaw('order_off_load.id, order_off_load.dcn, order_off_load.remarks AS o_remarks, order_in_load.grn, customers.name AS c_name, customers.id AS c_id, warehouses.location AS w_location, warehouses.w_name, product.name AS p_name, product.packing AS p_packing, order_off_load.quantity AS o_quantity, consignee.name AS cn_name, consignee.address AS cn_address, consignee.pic AS cn_pic, consignee.location as cn_location, consignee.contact AS cn_contact, order_off_load.order_type AS o_order_type')
                             ->whereRaw('order_off_load.inload_id =order_in_load.id')
                             ->whereRaw('warehouses.location != consignee.location')
-                            ->whereRaw('order_off_load.picked != 0')
+                            ->whereRaw('order_off_load.picked = 1')
                             ->get();
         return view('warehouse.customer.assignvehicle',compact('ordersoff','unique'));                    
     }
@@ -614,16 +617,54 @@ class WarehouseHeadController extends Controller
         $selected = DB::table('assign_vehicle')
         ->join('order_off_load','assign_vehicle.order_id','order_off_load.id')
         ->selectRaw('order_off_load.dcn AS dcn, assign_vehicle.order_id AS id, order_off_load.customer_id')
+        ->where('assign_vehicle.status',0)
         ->where('assign_vehicle.fake_unique',$request->unique)
         ->get();
         $id = DB::table('assign_vehicle')->select('order_id')->where('fake_unique',$request->unique)->first()->order_id;
         $customer_id = OrderOffLoad::select('customer_id')->where('id',$id)->first()->customer_id;
-        return view('warehouse.customer.vehiclemcr',compact('selected','customer_id'));
+        $unique = $request->unique;
+        $vehicles = Vehicle::all();
+        $mcrs = Mcr::all();
+        $cns = Cn::all();
+        return view('warehouse.customer.vehiclemcr',compact('selected','customer_id','unique','vehicles','cns','mcrs'));
     }
-
-    public function submitvehicle($value='')
+    //line haul
+    public function submitvehicle(Request $request)
     {
-        # code...
+        // return $request;
+        // return array_reverse($request->order_id);
+        foreach($request->cn_no as $cKey => $value)
+        {
+            $var = array();
+            // echo $value.'<br>';
+            foreach ($request->order_id as $oKey=> $order )
+            {
+                if ($cKey == $oKey) 
+                {
+                    $var['order_id'] = $order;
+                    $var['mcr_id'] = $request->mcr_no;
+                    $var['cn_id'] = $value;
+                    $var['vehicle_id'] = $request->vehicle_no;
+                    $id = DB::table('line_haul')->insertGetId($var);
+                    DB::table('assign_vehicle')
+                    ->where('order_id',$order)
+                    ->where('fake_unique',$request->unique)
+                    ->update([
+                        'status'=>1,
+                    ]);
+                    DB::table('order_off_load')->where('id',$order)->update([
+                        'picked'=>2,
+                    ]);
+                    $manifest = array();
+                    $manifest['order_id']=$order;
+                    $manifest['mcr_no']=$request->mcr_no;
+                    $manifest['status']=0;
+                    DB::table('manifest')->insert($manifest);
+                }
+            }
+        }
+        return redirect(route('manifest',$request->mcr_no));
+        // return $this->showvehiclemcr($request);
     }
 
     public function showmcr()
@@ -644,6 +685,30 @@ class WarehouseHeadController extends Controller
 
     public function checking(Request $request)
     {
-        return $request;
+        return $request;    
+    }
+
+    public function manifest()
+    {
+        $manifest = DB::table('manifest')
+        ->join('order_off_load','manifest.order_id','order_off_load.id')
+        ->join('mcr','manifest.mcr_no', 'mcr.mcr_id')
+        ->selectRaw('order_off_load.dcn, mcr.mcr_no, manifest.status AS m_status ')
+        ->where('manifest.status','1')
+        ->get();
+        $print = 0;
+        return view('warehouse.customer.manifest',compact('manifest','print'));
+    }
+    public function manifest1($mcr_id)
+    {
+        $manifest = DB::table('manifest')
+        ->join('order_off_load','manifest.order_id','order_off_load.id')
+        ->join('mcr','manifest.mcr_no', 'mcr.mcr_id')
+        ->selectRaw('order_off_load.dcn, mcr.mcr_no, manifest.status AS m_status ')
+        ->where('manifest.status','0')
+        ->where('manifest.mcr_no',$mcr_id)
+        ->get();
+        $print = 1;
+        return view('warehouse.customer.manifest',compact('manifest','print'));
     }
 }

@@ -202,7 +202,7 @@
                 </ul>
             </li>
             <li>
-                <a href="#" class="nav-link nav-toggle">
+                <a href="{{ route('head.manifest') }}" class="nav-link nav-toggle">
                     <i class="icon-home"></i>
                     <span class="title">Create Manifest</span>
                     <span class="selected"></span>
